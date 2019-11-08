@@ -1,6 +1,9 @@
-module Bytes.Encode.Extra exposing (byteValues, list)
+module Bytes.Encode.Extra exposing (list, byteValues)
 
 {-| This module provides helpers for working with `Bytes.Encode.Encoder`s.
+
+@docs list, byteValues
+
 -}
 
 import Bytes.Encode exposing (Encoder, sequence, unsignedInt8)
