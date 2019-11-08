@@ -1,0 +1,2 @@
+language: elm
+script: make test ELM=/home/travis/.nvm/versions/node/v10.13.0/bin/elm ELM_FORMAT=/home/travis/.nvm/versions/node/v10.13.0/bin/elm-format ELM_TEST=/home/travis/.nvm/versions/node/v10.13.0/bin/elm-test ELM_VERIFY_EXAMPLES=node_modules/.bin/elm-verify-examples
