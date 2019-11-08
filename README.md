@@ -57,7 +57,7 @@ Decode.decode myDataDecoder <|
 --> Just
 -->     { count = 12
 -->     , title = "Metric A"
--->     , status = Downloaded
+-->     , status = FromRemote
 -->     , weighting = 0.234
 -->     }
 
