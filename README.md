@@ -29,7 +29,7 @@ stringToBytes "Hello world!"
 --
 
 
-type Status = Downloaded | Downloading | ToFetch | NotUploaded
+type Status = FromRemote | FromLocal
 
 type alias MyData =
   { count : Int
@@ -43,7 +43,7 @@ myDataDecoder =
     Decode.succeed MyData
         |> andMap (Decode.unsignedInt16 BE)
         |> andMap (Decode.unsignedInt16 BE |> Decode.andThen Decode.string)
-        |> hardcoded Downloaded
+        |> hardcoded FromRemote
         |> andMap (Decode.float64 BE)
 
 
