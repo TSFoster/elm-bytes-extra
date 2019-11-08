@@ -1,4 +1,4 @@
 {
   "root": "../src",
-  "tests": ["./README.md"]
+  "tests": ["./README.md", "Bytes.Extra", "Bytes.Encode.Extra", "Bytes.Decode.Extra"]
 }
