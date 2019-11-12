@@ -1,11 +1,18 @@
-module Bytes.Encode.Extra exposing (list, byteValues)
+module Bytes.Encode.Extra exposing
+    ( list, byteValues
+    , signedInt24, unsignedInt24
+    )
 
 {-| This module provides helpers for working with `Bytes.Encode.Encoder`s.
 
 @docs list, byteValues
 
+@docs signedInt24, unsignedInt24
+
 -}
 
+import Bitwise
+import Bytes exposing (Endianness(..))
 import Bytes.Encode exposing (Encoder, sequence, unsignedInt8)
 
 
@@ -59,3 +66,59 @@ and `Bytes`.
 byteValues : List Int -> Encoder
 byteValues =
     list unsignedInt8
+
+
+{-| Encode a 24-bit signed integer
+-}
+signedInt24 : Endianness -> Int -> Encoder
+signedInt24 endianness n =
+    let
+        b12 =
+            n
+                |> Bitwise.shiftRightZfBy 8
+                |> Bitwise.and 0xFFFF
+
+        b3 =
+            n
+                |> Bitwise.and 0xFF
+    in
+    case endianness of
+        BE ->
+            Bytes.Encode.sequence
+                [ Bytes.Encode.signedInt16 BE b12
+                , Bytes.Encode.signedInt8 b3
+                ]
+
+        LE ->
+            Bytes.Encode.sequence
+                [ Bytes.Encode.signedInt8 b3
+                , Bytes.Encode.signedInt16 LE b12
+                ]
+
+
+{-| Encode a 24-bit unsigned integer
+-}
+unsignedInt24 : Endianness -> Int -> Encoder
+unsignedInt24 endianness n =
+    let
+        b12 =
+            n
+                |> Bitwise.shiftRightZfBy 8
+                |> Bitwise.and 0xFFFF
+
+        b3 =
+            n
+                |> Bitwise.and 0xFF
+    in
+    case endianness of
+        BE ->
+            Bytes.Encode.sequence
+                [ Bytes.Encode.unsignedInt16 BE b12
+                , Bytes.Encode.unsignedInt8 b3
+                ]
+
+        LE ->
+            Bytes.Encode.sequence
+                [ Bytes.Encode.unsignedInt8 b3
+                , Bytes.Encode.unsignedInt16 LE b12
+                ]
