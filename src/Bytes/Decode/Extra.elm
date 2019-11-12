@@ -2,6 +2,7 @@ module Bytes.Decode.Extra exposing
     ( list, byteValues
     , andMap, hardcoded
     , map6, map7, map8
+    , onlyOks, onlyJusts
     )
 
 {-| Helpers for working with `Bytes.Decoder`s.
@@ -57,6 +58,11 @@ makes an equivalent to `Json.Decode.Pipeline.optional` difficult to impossible.
 ## Extra maps
 
 @docs map6, map7, map8
+
+
+## Working with Results and Maybes
+
+@docs onlyOks, onlyJusts
 
 -}
 
@@ -177,3 +183,42 @@ being decoded, similar to [`Json.Decode.Pipeline.hardcoded`][json-hardcoded].
 hardcoded : a -> Decoder (a -> b) -> Decoder b
 hardcoded =
     map << (|>)
+
+
+{-| Take a `Decoder (Maybe a)` and make it fail if it decodes to `Nothing`.
+
+    import Bytes.Extra exposing (fromByteValues)
+    import Bytes.Decode exposing (..)
+
+    maybeBoolDecoder : Decoder (Maybe Bool)
+    maybeBoolDecoder =
+      Bytes.Decode.map
+          (\int ->
+              case int of
+                 0 -> Just False
+                 1 -> Just True
+                 _ -> Nothing
+          )
+          Bytes.Decode.unsignedInt8
+
+    boolDecoder : Decoder Bool
+    boolDecoder =
+      onlyJusts maybeBoolDecoder
+
+    decode maybeBoolDecoder (fromByteValues [0x01])
+    --> Just (Just True)
+
+    decode boolDecoder (fromByteValues [0x01])
+    --> Just True
+
+-}
+onlyJusts : Decoder (Maybe a) -> Decoder a
+onlyJusts =
+    andThen (Maybe.map succeed >> Maybe.withDefault fail)
+
+
+{-| Take a `Decoder (Result err a)` and make it fail if it decodes an `Err`.
+-}
+onlyOks : Decoder (Result err a) -> Decoder a
+onlyOks =
+    andThen (Result.map succeed >> Result.withDefault fail)
