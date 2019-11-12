@@ -1,5 +1,6 @@
 module Bytes.Decode.Extra exposing
     ( list, byteValues
+    , unsignedInt24, signedInt24
     , andMap, hardcoded
     , map6, map7, map8
     , onlyOks, onlyJusts
@@ -8,6 +9,8 @@ module Bytes.Decode.Extra exposing
 {-| Helpers for working with `Bytes.Decoder`s.
 
 @docs list, byteValues
+
+@docs unsignedInt24, signedInt24
 
 
 ## Pipeline-style
@@ -66,6 +69,8 @@ makes an equivalent to `Json.Decode.Pipeline.optional` difficult to impossible.
 
 -}
 
+import Bitwise
+import Bytes exposing (Endianness(..))
 import Bytes.Decode exposing (..)
 
 
@@ -222,3 +227,46 @@ onlyJusts =
 onlyOks : Decoder (Result err a) -> Decoder a
 onlyOks =
     andThen (Result.map succeed >> Result.withDefault fail)
+
+
+
+-- 24 bit
+
+
+pack24 : Int -> Int -> Int -> Int
+pack24 a b c =
+    Bitwise.or (Bitwise.shiftLeftBy 16 a) (Bitwise.or (Bitwise.shiftLeftBy 8 b) c)
+
+
+{-| Decode a signed 24-bit integer
+-}
+signedInt24 : Endianness -> Decoder Int
+signedInt24 endianness =
+    case endianness of
+        BE ->
+            Bytes.Decode.map3 (\byte1 byte2 byte3 -> pack24 byte1 byte2 byte3)
+                Bytes.Decode.signedInt8
+                Bytes.Decode.unsignedInt8
+                Bytes.Decode.unsignedInt8
+
+        LE ->
+            Bytes.Decode.map3 (\byte1 byte2 byte3 -> pack24 byte3 byte2 byte1)
+                Bytes.Decode.unsignedInt8
+                Bytes.Decode.unsignedInt8
+                Bytes.Decode.signedInt8
+
+
+{-| Decode an unsigned 24-bit integer
+-}
+unsignedInt24 : Endianness -> Decoder Int
+unsignedInt24 endianness =
+    let
+        recombine byte1 byte2 byte3 =
+            case endianness of
+                BE ->
+                    pack24 byte1 byte2 byte3
+
+                LE ->
+                    pack24 byte3 byte2 byte1
+    in
+    Bytes.Decode.map3 recombine Bytes.Decode.unsignedInt8 Bytes.Decode.unsignedInt8 Bytes.Decode.unsignedInt8
