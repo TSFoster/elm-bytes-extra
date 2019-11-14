@@ -2,7 +2,7 @@ module Bytes.Decode.Extra exposing
     ( list, byteValues
     , unsignedInt24, signedInt24
     , andMap, hardcoded
-    , map6, map7, map8, map16
+    , map6, map7, map8, map9, map16
     , onlyOks, onlyJusts
     )
 
@@ -60,7 +60,7 @@ makes an equivalent to `Json.Decode.Pipeline.optional` difficult to impossible.
 
 ## Extra maps
 
-@docs map6, map7, map8, map16
+@docs map6, map7, map8, map9, map16
 
 
 ## Working with Results and Maybes
@@ -149,80 +149,18 @@ andMap aDecoder fnDecoder =
     map2 (<|) fnDecoder aDecoder
 
 
-{-| -}
-map6 : (a -> b -> c -> d -> e -> f -> result) -> Decoder a -> Decoder b -> Decoder c -> Decoder d -> Decoder e -> Decoder f -> Decoder result
-map6 f b1 b2 b3 b4 b5 b6 =
-    let
-        d1 =
-            Bytes.Decode.map4 (\a b c d -> f a b c d) b1 b2 b3 b4
-
-        d2 =
-            Bytes.Decode.map3 (\h a b -> h a b) d1 b5 b6
-    in
-    d2
 
 
-{-| -}
-map7 : (a -> b -> c -> d -> e -> f -> g -> result) -> Decoder a -> Decoder b -> Decoder c -> Decoder d -> Decoder e -> Decoder f -> Decoder g -> Decoder result
-map7 f b1 b2 b3 b4 b5 b6 b7 =
-    let
-        d1 =
-            Bytes.Decode.map4 (\a b c d -> f a b c d) b1 b2 b3 b4
-
-        d2 =
-            Bytes.Decode.map4 (\h a b c -> h a b c) d1 b5 b6 b7
-    in
-    d2
 
 
-{-| -}
-map8 : (a -> b -> c -> d -> e -> f -> g -> h -> result) -> Decoder a -> Decoder b -> Decoder c -> Decoder d -> Decoder e -> Decoder f -> Decoder g -> Decoder h -> Decoder result
-map8 f b1 b2 b3 b4 b5 b6 b7 b8 =
-    let
-        d1 =
-            Bytes.Decode.map4 (\a b c d -> f a b c d) b1 b2 b3 b4
-
-        d2 =
-            Bytes.Decode.map5 (\h a b c d -> h a b c d) d1 b5 b6 b7 b8
-    in
-    d2
 
 
-{-| -}
-map16 :
-    (b1 -> b2 -> b3 -> b4 -> b5 -> b6 -> b7 -> b8 -> b9 -> b10 -> b11 -> b12 -> b13 -> b14 -> b15 -> b16 -> result)
-    -> Decoder b1
-    -> Decoder b2
-    -> Decoder b3
-    -> Decoder b4
-    -> Decoder b5
-    -> Decoder b6
-    -> Decoder b7
-    -> Decoder b8
-    -> Decoder b9
-    -> Decoder b10
-    -> Decoder b11
-    -> Decoder b12
-    -> Decoder b13
-    -> Decoder b14
-    -> Decoder b15
-    -> Decoder b16
-    -> Decoder result
-map16 f b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 b14 b15 b16 =
-    let
-        d1 =
-            Bytes.Decode.map4 (\a b c d -> f a b c d) b1 b2 b3 b4
 
-        d2 =
-            Bytes.Decode.map5 (\h a b c d -> h a b c d) d1 b5 b6 b7 b8
 
-        d3 =
-            Bytes.Decode.map5 (\h a b c d -> h a b c d) d2 b9 b10 b11 b12
 
-        d4 =
-            Bytes.Decode.map5 (\h a b c d -> h a b c d) d3 b13 b14 b15 b16
-    in
-    d4
+
+
+
 
 
 {-| A neat way to fill in predetermined information that's not part of the data
@@ -245,6 +183,94 @@ hardcoded =
     map << (|>)
 
 
+
+-- EXTRA MAPS
+
+
+{-| -}
+map6 :
+    (a -> b -> c -> d -> e -> f -> result)
+    -> Decoder a
+    -> Decoder b
+    -> Decoder c
+    -> Decoder d
+    -> Decoder e
+    -> Decoder f
+    -> Decoder result
+map6 func a b c d e f =
+    map3 identity (map4 func a b c d) e f
+
+
+{-| -}
+map7 :
+    (a -> b -> c -> d -> e -> f -> g -> result)
+    -> Decoder a
+    -> Decoder b
+    -> Decoder c
+    -> Decoder d
+    -> Decoder e
+    -> Decoder f
+    -> Decoder g
+    -> Decoder result
+map7 func a b c d e f g =
+    map4 identity (map4 func a b c d) e f g
+
+
+{-| -}
+map8 :
+    (a -> b -> c -> d -> e -> f -> g -> h -> result)
+    -> Decoder a
+    -> Decoder b
+    -> Decoder c
+    -> Decoder d
+    -> Decoder e
+    -> Decoder f
+    -> Decoder g
+    -> Decoder h
+    -> Decoder result
+map8 func a b c d e f g h =
+    map5 identity (map4 func a b c d) e f g h
+
+
+{-| -}
+map9 :
+    (a -> b -> c -> d -> e -> f -> g -> h -> i -> result)
+    -> Decoder a
+    -> Decoder b
+    -> Decoder c
+    -> Decoder d
+    -> Decoder e
+    -> Decoder f
+    -> Decoder g
+    -> Decoder h
+    -> Decoder i
+    -> Decoder result
+map9 func a b c d e f g h i =
+    map5 identity (map5 func a b c d e) f g h i
+
+
+{-| -}
+map16 :
+    (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k -> l -> m -> n -> o -> p -> result)
+    -> Decoder a
+    -> Decoder b
+    -> Decoder c
+    -> Decoder d
+    -> Decoder e
+    -> Decoder f
+    -> Decoder g
+    -> Decoder h
+    -> Decoder i
+    -> Decoder j
+    -> Decoder k
+    -> Decoder l
+    -> Decoder m
+    -> Decoder n
+    -> Decoder o
+    -> Decoder p
+    -> Decoder result
+map16 func a b c d e f g h i j k l m n o p =
+    map9 identity (map8 func a b c d e f g h) i j k l m n o p
 {-| Take a `Decoder (Maybe a)` and make it fail if it decodes to `Nothing`.
 
     import Bytes.Extra exposing (fromByteValues)
