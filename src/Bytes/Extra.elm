@@ -37,7 +37,7 @@ empty =
 
 
 {-| Slice a segment from `Bytes`. Negative indexes are taken starting from the
-end of the byte array.
+end of the byte sequence.
 
     fromByteValues (List.range 0 20)
         |> slice 5 10
@@ -84,14 +84,12 @@ slice from to bytes =
         |> Maybe.withDefault empty
 
 
-{-| A prefix of a `Bytes`
+{-| Take the first `n` bytes of the given bytes sequence.
 
     fromByteValues (List.range 0 20)
         |> take 5
         |> toByteValues
     --> [ 0, 1, 2, 3, 4 ]
-
-Returns the input when more than `Bytes.width input` values are taken
 
     fromByteValues (List.range 0 20)
         |> take 100
@@ -105,7 +103,7 @@ take amount bytes =
         |> Maybe.withDefault bytes
 
 
-{-| A suffix of a `Bytes`
+{-| Drop the first `n` bytes of the given byte sequence.
 
     fromByteValues (List.range 0 20)
         |> drop 15
