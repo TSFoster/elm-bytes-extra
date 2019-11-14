@@ -10,6 +10,11 @@ module Bytes.Decode.Extra exposing
 
 @docs list, byteValues
 
+
+## 24-bit Integers
+
+One notable use of 24-bit integers is in 24-bit color, a.k.a. "True color".
+
 @docs unsignedInt24, signedInt24
 
 
@@ -131,6 +136,43 @@ byteValues length =
     list length unsignedInt8
 
 
+
+-- 24-BIT INTEGERS
+
+
+pack24 : Int -> Int -> Int -> Int
+pack24 a b c =
+    Bitwise.or (Bitwise.shiftLeftBy 16 a) (Bitwise.or (Bitwise.shiftLeftBy 8 b) c)
+
+
+{-| Decode three bytes into an integer from `-8388608` to `8388607`.
+-}
+signedInt24 : Endianness -> Decoder Int
+signedInt24 endianness =
+    case endianness of
+        BE ->
+            map3 pack24 signedInt8 unsignedInt8 unsignedInt8
+
+        LE ->
+            map3 (\byte1 byte2 byte3 -> pack24 byte3 byte2 byte1) unsignedInt8 unsignedInt8 signedInt8
+
+
+{-| Decode three bytes into an integer from `0` to `16777215`.
+-}
+unsignedInt24 : Endianness -> Decoder Int
+unsignedInt24 endianness =
+    case endianness of
+        BE ->
+            map3 pack24 unsignedInt8 unsignedInt8 unsignedInt8
+
+        LE ->
+            map3 (\byte1 byte2 byte3 -> pack24 byte3 byte2 byte1) unsignedInt8 unsignedInt8 unsignedInt8
+
+
+
+--> PIPELINE
+
+
 {-| `andMap` behaves in a similar way to [`Json.Decode.Pipeline.required`][pipeline-required]. It is named `andMap` to match the naming of similar functions in other packages, and because this package does not provide an equivalent to `Json.Decode.Pipeline.optional`.
 
     modelDecoder : Decoder Model
@@ -147,20 +189,6 @@ byteValues length =
 andMap : Decoder a -> Decoder (a -> b) -> Decoder b
 andMap aDecoder fnDecoder =
     map2 (<|) fnDecoder aDecoder
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 {-| A neat way to fill in predetermined information that's not part of the data
@@ -271,6 +299,12 @@ map16 :
     -> Decoder result
 map16 func a b c d e f g h i j k l m n o p =
     map9 identity (map8 func a b c d e f g h) i j k l m n o p
+
+
+
+-- RESULTS AND MAYBES
+
+
 {-| Take a `Decoder (Maybe a)` and make it fail if it decodes to `Nothing`.
 
     import Bytes.Extra exposing (fromByteValues)
@@ -308,46 +342,3 @@ onlyJusts =
 onlyOks : Decoder (Result err a) -> Decoder a
 onlyOks =
     andThen (Result.map succeed >> Result.withDefault fail)
-
-
-
--- 24 bit
-
-
-pack24 : Int -> Int -> Int -> Int
-pack24 a b c =
-    Bitwise.or (Bitwise.shiftLeftBy 16 a) (Bitwise.or (Bitwise.shiftLeftBy 8 b) c)
-
-
-{-| Decode a signed 24-bit integer
--}
-signedInt24 : Endianness -> Decoder Int
-signedInt24 endianness =
-    case endianness of
-        BE ->
-            Bytes.Decode.map3 (\byte1 byte2 byte3 -> pack24 byte1 byte2 byte3)
-                Bytes.Decode.signedInt8
-                Bytes.Decode.unsignedInt8
-                Bytes.Decode.unsignedInt8
-
-        LE ->
-            Bytes.Decode.map3 (\byte1 byte2 byte3 -> pack24 byte3 byte2 byte1)
-                Bytes.Decode.unsignedInt8
-                Bytes.Decode.unsignedInt8
-                Bytes.Decode.signedInt8
-
-
-{-| Decode an unsigned 24-bit integer
--}
-unsignedInt24 : Endianness -> Decoder Int
-unsignedInt24 endianness =
-    let
-        recombine byte1 byte2 byte3 =
-            case endianness of
-                BE ->
-                    pack24 byte1 byte2 byte3
-
-                LE ->
-                    pack24 byte3 byte2 byte1
-    in
-    Bytes.Decode.map3 recombine Bytes.Decode.unsignedInt8 Bytes.Decode.unsignedInt8 Bytes.Decode.unsignedInt8
