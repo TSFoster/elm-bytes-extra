@@ -8,9 +8,11 @@ module Bytes.Extra exposing
 
 @docs empty
 
-Before the release of [elm/bytes], many packages would use `List Int`
+Before the release of [elm/bytes][elm-bytes], many packages would use `List Int`
 to represent bytes. To enable interaction with these packages, you can use
 `fromByteValues` and `toByteValues`.
+
+[elm-bytes]: https://package.elm-lang.org/packages/elm/bytes/latest/
 
 @docs fromByteValues, toByteValues
 
@@ -18,8 +20,6 @@ to represent bytes. To enable interaction with these packages, you can use
 ## Slicing and dicing
 
 @docs slice, take, drop, splitAt, last
-
-[elm/bytes]: https://package.elm-lang.org/packages/elm/bytes/latest/
 
 -}
 
