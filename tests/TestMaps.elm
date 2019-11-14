@@ -5,10 +5,10 @@ import Bytes.Decode as Decode
 import Bytes.Decode.Extra as Decode
 import Bytes.Extra as Bytes
 import Expect
-import Fuzz
 import Test exposing (..)
 
 
+suite : Test
 suite =
     describe "Decode.Extra.mapX"
         [ test "map6" <|

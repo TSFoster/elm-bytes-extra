@@ -10,6 +10,7 @@ import Fuzz
 import Test exposing (..)
 
 
+suite : Test
 suite =
     describe "24-bit integer encoding and decoding"
         [ describe "Encode"
