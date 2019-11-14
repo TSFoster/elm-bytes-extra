@@ -64,21 +64,45 @@ end of the byte sequence.
         |> toByteValues
     --> []
 
+    fromByteValues (List.range 0 20)
+        |> slice -1 -5
+        |> toByteValues
+    --> []
+
+    fromByteValues (List.range 0 20)
+        |> slice -5 -1
+        |> toByteValues
+    --> [ 16, 17, 18, 19 ]
+
 -}
 slice : Int -> Int -> Bytes -> Bytes
 slice from to bytes =
     let
-        toKeep =
-            if to < 0 then
-                Bytes.width bytes + to - from
+        width =
+            Bytes.width bytes
 
-            else
-                min (to - from) (Bytes.width bytes - from)
+        dropAmount =
+            max 0
+                (if from < 0 then
+                    width + from
+
+                 else
+                    min width from
+                )
+
+        keepAmount =
+            max 0
+                (if to < 0 then
+                    width + to - dropAmount
+
+                 else
+                    min width to - dropAmount
+                )
 
         decoder =
             Bytes.Decode.map2 (\_ v -> v)
-                (Bytes.Decode.bytes from)
-                (Bytes.Decode.bytes toKeep)
+                (Bytes.Decode.bytes dropAmount)
+                (Bytes.Decode.bytes keepAmount)
     in
     Bytes.Decode.decode decoder bytes
         |> Maybe.withDefault empty
