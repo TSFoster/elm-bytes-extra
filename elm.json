@@ -3,7 +3,7 @@
     "name": "TSFoster/elm-bytes-extra",
     "summary": "Helpers for working with elm/bytes",
     "license": "BSD-3-Clause",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "exposed-modules": [
         "Bytes.Extra",
         "Bytes.Decode.Extra",
