@@ -1,7 +1,7 @@
 module Bytes.Extra exposing
     ( empty
     , fromByteValues, toByteValues
-    , slice, take, drop
+    , slice, take, drop, splitAt, last
     )
 
 {-| Before the release of [elm/bytes], many packages would use `List Int`
@@ -10,7 +10,7 @@ to represent bytes. To enable interaction with these packages, you can use
 
 @docs empty
 @docs fromByteValues, toByteValues
-@docs slice, take, drop
+@docs slice, take, drop, splitAt, last
 
 [elm/bytes]: https://package.elm-lang.org/packages/elm/bytes/latest/
 
@@ -145,6 +145,76 @@ Returns `empty` when all elements are dropped:
 drop : Int -> Bytes -> Bytes
 drop amount bytes =
     slice amount (Bytes.width bytes) bytes
+
+
+{-| Split some `Bytes` into two at the given index. Negative indexes are counted
+from the end of the byte sequence.
+
+    fromByteValues (List.range 0 5)
+        |> splitAt 0
+        |> Tuple.mapBoth toByteValues toByteValues
+    --> ([], [ 0, 1, 2, 3, 4, 5 ])
+
+    fromByteValues (List.range 0 5)
+        |> splitAt 3
+        |> Tuple.mapBoth toByteValues toByteValues
+    --> ([ 0, 1, 2 ], [ 3, 4, 5 ])
+
+    fromByteValues (List.range 0 5)
+        |> splitAt 10
+        |> Tuple.mapBoth toByteValues toByteValues
+    --> ([ 0, 1, 2, 3, 4, 5 ], [])
+
+    fromByteValues (List.range 0 5)
+        |> splitAt -2
+        |> Tuple.mapBoth toByteValues toByteValues
+    --> ([ 0, 1, 2, 3 ], [ 4, 5 ])
+
+-}
+splitAt : Int -> Bytes -> ( Bytes, Bytes )
+splitAt index bytes =
+    let
+        width =
+            Bytes.width bytes
+
+        leftAmount =
+            clamp 0
+                width
+                (if index < 0 then
+                    width + index
+
+                 else
+                    index
+                )
+
+        decoder =
+            Bytes.Decode.map2 Tuple.pair (Bytes.Decode.bytes leftAmount) (Bytes.Decode.bytes (width - leftAmount))
+    in
+    Bytes.Decode.decode decoder bytes
+        |> Maybe.withDefault ( empty, empty )
+
+
+{-| Take the last `n` bytes from a sequence of bytes.
+
+    fromByteValues (List.range 0 20)
+        |> last -1
+        |> toByteValues
+    --> []
+
+    fromByteValues (List.range 0 20)
+        |> last 3
+        |> toByteValues
+    --> [ 18, 19, 20 ]
+
+    fromByteValues (List.range 0 20)
+        |> last 100
+        |> toByteValues
+    --> List.range 0 20
+
+-}
+last : Int -> Bytes -> Bytes
+last amount bytes =
+    drop (Bytes.width bytes - amount) bytes
 
 
 {-| Convert a `List Int` to `Bytes`. Each `Int` represents a single byte,
