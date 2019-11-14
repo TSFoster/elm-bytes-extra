@@ -71,6 +71,28 @@ suite =
                     |> Bytes.fromByteValues
                     |> Decode.decode decoder
                     |> Expect.equal (Just input)
+        , test "map9" <|
+            \_ ->
+                let
+                    input =
+                        List.range 0 8
+
+                    decoder =
+                        Decode.map9 (\a b c d e f g h i -> [ a, b, c, d, e, f, g, h, i ])
+                            Decode.unsignedInt8
+                            Decode.unsignedInt8
+                            Decode.unsignedInt8
+                            Decode.unsignedInt8
+                            Decode.unsignedInt8
+                            Decode.unsignedInt8
+                            Decode.unsignedInt8
+                            Decode.unsignedInt8
+                            Decode.unsignedInt8
+                in
+                input
+                    |> Bytes.fromByteValues
+                    |> Decode.decode decoder
+                    |> Expect.equal (Just input)
         , test "map16" <|
             \_ ->
                 let
