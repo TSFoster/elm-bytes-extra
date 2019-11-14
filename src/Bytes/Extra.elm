@@ -8,6 +8,9 @@ module Bytes.Extra exposing
 
 @docs empty
 
+
+## Byte values
+
 Before the release of [elm/bytes][elm-bytes], many packages would use `List Int`
 to represent bytes. To enable interaction with these packages, you can use
 `fromByteValues` and `toByteValues`.
