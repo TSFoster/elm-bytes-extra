@@ -7,7 +7,7 @@ import Bytes.Encode as Encode
 import Bytes.Encode.Extra as Encode
 import Expect
 import Fuzz
-import Test exposing (..)
+import Test exposing (Test, describe, fuzz, test)
 
 
 suite : Test

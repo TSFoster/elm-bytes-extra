@@ -76,24 +76,18 @@ makes an equivalent to `Json.Decode.Pipeline.optional` difficult to impossible.
 
 import Bitwise
 import Bytes exposing (Endianness(..))
-import Bytes.Decode exposing (..)
+import Bytes.Decode exposing (Decoder, Step(..), andThen, fail, loop, map, map2, map3, map4, map5, signedInt8, succeed, unsignedInt8)
 
 
 {-| Run a decoder a set amount of times, and collect the result in a list.
 
-    import Bytes.Decode exposing (Decoder)
-    import Bytes.Encode
-    import Bytes.Encode.Extra
+    import Bytes.Decode
+    import Bytes.Extra exposing (fromByteValues)
 
-    myDecoder : Decoder (List String)
-    myDecoder =
-        list 3 (Bytes.Decode.string 5)
 
-    [ "HELLO", "WORLD", "third" ]
-        |> Bytes.Encode.Extra.list Bytes.Encode.string
-        |> Bytes.Encode.encode
-        |> Bytes.Decode.decode myDecoder
-    --> Just [ "HELLO", "WORLD", "third" ]
+    fromByteValues (List.range 0 20)
+        |> Bytes.Decode.decode (Bytes.Decode.Extra.list 21 Bytes.Decode.unsignedInt8)
+    --> Just (List.range 0 20)
 
 -}
 list : Int -> Decoder a -> Decoder (List a)
@@ -114,21 +108,16 @@ listStep elementDecoder ( n, elements ) =
 to represent bytes. `byteValues` aids interaciton between those packages
 and `Bytes`.
 
-    import Hex
     import Bytes exposing (Bytes)
-    import Bytes.Decode exposing (Decoder)
+    import Bytes.Decode
     import Bytes.Extra exposing (fromByteValues)
 
     input : Bytes
-    input = fromByteValues [ 0x32, 0xff, 0x53 ]
+    input =
+        fromByteValues [ 0x32, 0xFF, 0x53, 0x54, 0x55 ]
 
-    decoder : Decoder (List String)
-    decoder =
-        byteValues (Bytes.width input)
-          |> Bytes.Decode.map (List.map Hex.toString)
-
-    Bytes.Decode.decode decoder input
-    --> Just [ "32", "ff", "53" ]
+    Bytes.Decode.decode (byteValues 3) input
+    --> Just [ 0x32, 0xFF, 0x53 ]
 
 -}
 byteValues : Int -> Decoder (List Int)
@@ -154,7 +143,7 @@ signedInt24 endianness =
             map3 pack24 signedInt8 unsignedInt8 unsignedInt8
 
         LE ->
-            map3 (\byte1 byte2 byte3 -> pack24 byte3 byte2 byte1) unsignedInt8 unsignedInt8 signedInt8
+            map3 (\b1 b2 b3 -> pack24 b3 b2 b1) unsignedInt8 unsignedInt8 signedInt8
 
 
 {-| Decode three bytes into an integer from `0` to `16777215`.
@@ -166,7 +155,7 @@ unsignedInt24 endianness =
             map3 pack24 unsignedInt8 unsignedInt8 unsignedInt8
 
         LE ->
-            map3 (\byte1 byte2 byte3 -> pack24 byte3 byte2 byte1) unsignedInt8 unsignedInt8 unsignedInt8
+            map3 (\b1 b2 b3 -> pack24 b3 b2 b1) unsignedInt8 unsignedInt8 unsignedInt8
 
 
 
@@ -308,28 +297,11 @@ map16 func a b c d e f g h i j k l m n o p =
 {-| Take a `Decoder (Maybe a)` and make it fail if it decodes to `Nothing`.
 
     import Bytes.Extra exposing (fromByteValues)
-    import Bytes.Decode exposing (..)
+    import Bytes.Decode exposing (decode, map, string)
 
-    maybeBoolDecoder : Decoder (Maybe Bool)
-    maybeBoolDecoder =
-      Bytes.Decode.map
-          (\int ->
-              case int of
-                 0 -> Just False
-                 1 -> Just True
-                 _ -> Nothing
-          )
-          Bytes.Decode.unsignedInt8
-
-    boolDecoder : Decoder Bool
-    boolDecoder =
-      onlyJusts maybeBoolDecoder
-
-    decode maybeBoolDecoder (fromByteValues [0x01])
-    --> Just (Just True)
-
-    decode boolDecoder (fromByteValues [0x01])
-    --> Just True
+    fromByteValues [ 0x30, 0x30, 0x30, 0x31, 0x30 ] -- "00010"
+        |> decode (onlyJusts (map String.toInt (string 5)))
+    --> Just 10
 
 -}
 onlyJusts : Decoder (Maybe a) -> Decoder a

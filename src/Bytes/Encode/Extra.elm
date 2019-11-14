@@ -7,6 +7,11 @@ module Bytes.Encode.Extra exposing
 
 @docs list, byteValues
 
+
+## 24-bit Integers
+
+One notable use of 24-bit integers is in 24-bit color, a.k.a. "True color".
+
 @docs signedInt24, unsignedInt24
 
 -}
@@ -66,6 +71,10 @@ and `Bytes`.
 byteValues : List Int -> Encoder
 byteValues =
     list unsignedInt8
+
+
+
+-- BASIC TYPES
 
 
 {-| Encode a 24-bit signed integer

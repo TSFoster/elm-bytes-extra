@@ -31,12 +31,6 @@ import Bytes.Encode.Extra
 
 
 {-| An empty `Bytes`. Useful for default cases or unreachable branches.
-
-    import Bytes
-
-    Bytes.width empty
-    --> 0
-
 -}
 empty : Bytes
 empty =
@@ -57,12 +51,12 @@ so values are assumed to be between 0 and 255 inclusive.
     MD5.bytes "hello world"
         |> fromByteValues
         |> Bytes.Decode.decode (Bytes.Decode.Extra.list 16 Bytes.Decode.unsignedInt8)
-    --> Just
-    -->     [ 0x5e , 0xb6 , 0x3b , 0xbb
-    -->     , 0xe0 , 0x1e , 0xee , 0xd0
-    -->     , 0x93 , 0xcb , 0x22 , 0xbb
-    -->     , 0x8f , 0x5a , 0xcd , 0xc3
-    -->     ]
+        |> Maybe.withDefault []
+    --> [ 0x5E , 0xB6 , 0x3B , 0xBB
+    --> , 0xE0 , 0x1E , 0xEE , 0xD0
+    --> , 0x93 , 0xCB , 0x22 , 0xBB
+    --> , 0x8F , 0x5A , 0xCD , 0xC3
+    --> ]
 
 -}
 fromByteValues : List Int -> Bytes
@@ -104,31 +98,6 @@ end of the byte sequence.
         |> slice 5 10
         |> toByteValues
     --> [ 5, 6, 7, 8, 9 ]
-
-    fromByteValues (List.range 0 20)
-        |> slice 30 40
-        |> toByteValues
-    --> []
-
-    fromByteValues (List.range 0 20)
-        |> slice 16 30
-        |> toByteValues
-    --> [ 16, 17, 18, 19 , 20 ]
-
-    fromByteValues (List.range 0 20)
-        |> slice 15 -1
-        |> toByteValues
-    --> [ 15, 16, 17, 18, 19 ]
-
-    fromByteValues (List.range 0 20)
-        |> slice 16 -7
-        |> toByteValues
-    --> []
-
-    fromByteValues (List.range 0 20)
-        |> slice -1 -5
-        |> toByteValues
-    --> []
 
     fromByteValues (List.range 0 20)
         |> slice -5 -1
@@ -176,15 +145,10 @@ slice from to bytes =
         |> toByteValues
     --> [ 0, 1, 2, 3, 4 ]
 
-    fromByteValues (List.range 0 20)
-        |> take 100
-        |> toByteValues
-    --> List.range 0 20
-
 -}
 take : Int -> Bytes -> Bytes
 take amount bytes =
-    Bytes.Decode.decode (Bytes.Decode.bytes amount) bytes
+    Bytes.Decode.decode (Bytes.Decode.bytes (max 0 amount)) bytes
         |> Maybe.withDefault bytes
 
 
@@ -195,36 +159,19 @@ take amount bytes =
         |> toByteValues
     --> [ 15, 16, 17, 18, 19, 20 ]
 
-Returns `empty` when all elements are dropped:
-
-    fromByteValues (List.range 0 20)
-        |> drop 100
-        |> toByteValues
-    --> []
-
 -}
 drop : Int -> Bytes -> Bytes
 drop amount bytes =
-    slice amount (Bytes.width bytes) bytes
+    slice (max 0 amount) (Bytes.width bytes) bytes
 
 
 {-| Split some `Bytes` into two at the given index. Negative indexes are counted
 from the end of the byte sequence.
 
     fromByteValues (List.range 0 5)
-        |> splitAt 0
-        |> Tuple.mapBoth toByteValues toByteValues
-    --> ([], [ 0, 1, 2, 3, 4, 5 ])
-
-    fromByteValues (List.range 0 5)
         |> splitAt 3
         |> Tuple.mapBoth toByteValues toByteValues
     --> ([ 0, 1, 2 ], [ 3, 4, 5 ])
-
-    fromByteValues (List.range 0 5)
-        |> splitAt 10
-        |> Tuple.mapBoth toByteValues toByteValues
-    --> ([ 0, 1, 2, 3, 4, 5 ], [])
 
     fromByteValues (List.range 0 5)
         |> splitAt -2
@@ -258,19 +205,9 @@ splitAt index bytes =
 {-| Take the last `n` bytes from a sequence of bytes.
 
     fromByteValues (List.range 0 20)
-        |> last -1
-        |> toByteValues
-    --> []
-
-    fromByteValues (List.range 0 20)
         |> last 3
         |> toByteValues
     --> [ 18, 19, 20 ]
-
-    fromByteValues (List.range 0 20)
-        |> last 100
-        |> toByteValues
-    --> List.range 0 20
 
 -}
 last : Int -> Bytes -> Bytes

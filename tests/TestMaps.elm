@@ -2,10 +2,10 @@ module TestMaps exposing (suite)
 
 import Bytes exposing (Endianness(..))
 import Bytes.Decode as Decode
-import Bytes.Decode.Extra as Decode
+import Bytes.Decode.Extra exposing (map16, map6, map7, map8, map9)
 import Bytes.Extra as Bytes
 import Expect
-import Test exposing (..)
+import Test exposing (Test, describe, test)
 
 
 suite : Test
@@ -18,7 +18,7 @@ suite =
                         List.range 0 5
 
                     decoder =
-                        Decode.map6 (\a b c d e f -> [ a, b, c, d, e, f ])
+                        map6 (\a b c d e f -> [ a, b, c, d, e, f ])
                             Decode.unsignedInt8
                             Decode.unsignedInt8
                             Decode.unsignedInt8
@@ -37,7 +37,7 @@ suite =
                         List.range 0 6
 
                     decoder =
-                        Decode.map7 (\a b c d e f g -> [ a, b, c, d, e, f, g ])
+                        map7 (\a b c d e f g -> [ a, b, c, d, e, f, g ])
                             Decode.unsignedInt8
                             Decode.unsignedInt8
                             Decode.unsignedInt8
@@ -57,7 +57,7 @@ suite =
                         List.range 0 7
 
                     decoder =
-                        Decode.map8 (\a b c d e f g h -> [ a, b, c, d, e, f, g, h ])
+                        map8 (\a b c d e f g h -> [ a, b, c, d, e, f, g, h ])
                             Decode.unsignedInt8
                             Decode.unsignedInt8
                             Decode.unsignedInt8
@@ -78,7 +78,7 @@ suite =
                         List.range 0 8
 
                     decoder =
-                        Decode.map9 (\a b c d e f g h i -> [ a, b, c, d, e, f, g, h, i ])
+                        map9 (\a b c d e f g h i -> [ a, b, c, d, e, f, g, h, i ])
                             Decode.unsignedInt8
                             Decode.unsignedInt8
                             Decode.unsignedInt8
@@ -100,7 +100,7 @@ suite =
                         List.range 0 15
 
                     decoder =
-                        Decode.map16 (\a b c d e f g h i j k l m n o p -> [ a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p ])
+                        map16 (\a b c d e f g h i j k l m n o p -> [ a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p ])
                             Decode.unsignedInt8
                             Decode.unsignedInt8
                             Decode.unsignedInt8
