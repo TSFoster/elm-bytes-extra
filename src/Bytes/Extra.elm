@@ -28,7 +28,7 @@ import Bytes.Encode.Extra
     import Bytes
 
     Bytes.width empty
-        --> 0
+    --> 0
 
 -}
 empty : Bytes
@@ -36,31 +36,52 @@ empty =
     Bytes.Encode.encode (Bytes.Encode.sequence [])
 
 
-{-| Slice a segment from a `Bytes`
+{-| Slice a segment from `Bytes`. Negative indexes are taken starting from the
+end of the byte array.
 
     fromByteValues (List.range 0 20)
         |> slice 5 10
         |> toByteValues
-        --> [ 5, 6, 7, 8, 9 ]
+    --> [ 5, 6, 7, 8, 9 ]
+
+    fromByteValues (List.range 0 20)
+        |> slice 30 40
+        |> toByteValues
+    --> []
+
+    fromByteValues (List.range 0 20)
+        |> slice 16 30
+        |> toByteValues
+    --> [ 16, 17, 18, 19 , 20 ]
+
+    fromByteValues (List.range 0 20)
+        |> slice 15 -1
+        |> toByteValues
+    --> [ 15, 16, 17, 18, 19 ]
+
+    fromByteValues (List.range 0 20)
+        |> slice 16 -7
+        |> toByteValues
+    --> []
 
 -}
 slice : Int -> Int -> Bytes -> Bytes
-slice from to buffer =
+slice from to bytes =
     let
         toKeep =
-            min (to - from) (Bytes.width buffer - to)
+            if to < 0 then
+                Bytes.width bytes + to - from
+
+            else
+                min (to - from) (Bytes.width bytes - from)
 
         decoder =
             Bytes.Decode.map2 (\_ v -> v)
                 (Bytes.Decode.bytes from)
                 (Bytes.Decode.bytes toKeep)
     in
-    case Bytes.Decode.decode decoder buffer of
-        Just v ->
-            v
-
-        Nothing ->
-            empty
+    Bytes.Decode.decode decoder bytes
+        |> Maybe.withDefault empty
 
 
 {-| A prefix of a `Bytes`
@@ -68,24 +89,20 @@ slice from to buffer =
     fromByteValues (List.range 0 20)
         |> take 5
         |> toByteValues
-        --> [ 0, 1, 2, 3, 4 ]
+    --> [ 0, 1, 2, 3, 4 ]
 
 Returns the input when more than `Bytes.width input` values are taken
 
     fromByteValues (List.range 0 20)
         |> take 100
         |> toByteValues
-        --> List.range 0 20
+    --> List.range 0 20
 
 -}
 take : Int -> Bytes -> Bytes
-take size buffer =
-    case Bytes.Decode.decode (Bytes.Decode.bytes size) buffer of
-        Just v ->
-            v
-
-        Nothing ->
-            buffer
+take amount bytes =
+    Bytes.Decode.decode (Bytes.Decode.bytes amount) bytes
+        |> Maybe.withDefault bytes
 
 
 {-| A suffix of a `Bytes`
@@ -93,38 +110,19 @@ take size buffer =
     fromByteValues (List.range 0 20)
         |> drop 15
         |> toByteValues
-        --> [ 15, 16, 17, 18, 19, 20 ]
+    --> [ 15, 16, 17, 18, 19, 20 ]
 
 Returns `empty` when all elements are dropped:
 
     fromByteValues (List.range 0 20)
         |> drop 100
         |> toByteValues
-        --> []
+    --> []
 
 -}
 drop : Int -> Bytes -> Bytes
-drop size buffer =
-    let
-        toKeep =
-            Bytes.width buffer - size
-    in
-    if toKeep <= 0 then
-        empty
-
-    else
-        let
-            decoder =
-                Bytes.Decode.map2 (\_ v -> v)
-                    (Bytes.Decode.bytes size)
-                    (Bytes.Decode.bytes toKeep)
-        in
-        case Bytes.Decode.decode decoder buffer of
-            Just v ->
-                v
-
-            Nothing ->
-                empty
+drop amount bytes =
+    slice amount (Bytes.width bytes) bytes
 
 
 {-| Convert a `List Int` to `Bytes`. Each `Int` represents a single byte,
