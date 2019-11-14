@@ -1,6 +1,6 @@
 {
   "name": "elm-bytes-extra",
-  "version": "1.1.0",
+  "version": "1.2.1",
   "description": "Helpers for working with elm/bytes",
   "main": "src/Bytes/Extra.elm",
   "directories": {
