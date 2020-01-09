@@ -2,6 +2,7 @@ module Bytes.Decode.Extra exposing
     ( list, byteValues
     , unsignedInt24, signedInt24
     , andMap, hardcoded
+    , withOffset
     , map6, map7, map8, map9, map16
     , onlyOks, onlyJusts
     )
@@ -63,6 +64,11 @@ makes an equivalent to `Json.Decode.Pipeline.optional` difficult to impossible.
 @docs andMap, hardcoded
 
 
+## Skipping bytes
+
+@docs withOffset
+
+
 ## Extra maps
 
 @docs map6, map7, map8, map9, map16
@@ -76,7 +82,7 @@ makes an equivalent to `Json.Decode.Pipeline.optional` difficult to impossible.
 
 import Bitwise
 import Bytes exposing (Endianness(..))
-import Bytes.Decode exposing (Decoder, Step(..), andThen, fail, loop, map, map2, map3, map4, map5, signedInt8, succeed, unsignedInt8)
+import Bytes.Decode exposing (Decoder, Step(..), andThen, bytes, fail, loop, map, map2, map3, map4, map5, signedInt8, succeed, unsignedInt8)
 
 
 {-| Run a decoder a set amount of times, and collect the result in a list.
@@ -198,6 +204,26 @@ being decoded, similar to [`Json.Decode.Pipeline.hardcoded`][json-hardcoded].
 hardcoded : a -> Decoder (a -> b) -> Decoder b
 hardcoded =
     map << (|>)
+
+
+
+-- SKIPPING BYTES
+
+
+{-| Sometimes the value you need to decode is preceded by a bunch of bytes you just don't need.
+
+    import Bytes exposing (Endianness(..))
+    import Bytes.Decode exposing (decode, unsignedInt16)
+    import Bytes.Extra exposing (fromByteValues)
+
+    fromByteValues [ 0xff, 0xff, 0xff, 0x21, 0x30 ]
+        |> decode (withOffset 3 (unsignedInt16 BE))
+    --> Just 8496
+
+-}
+withOffset : Int -> Decoder a -> Decoder a
+withOffset offset decoder =
+    bytes (max 0 offset) |> andThen (\_ -> decoder)
 
 
 

@@ -1,8 +1,6 @@
 module TestBytesExtra exposing (suite)
 
 import Bytes
-import Bytes.Decode
-import Bytes.Encode
 import Bytes.Extra exposing (empty, fromByteValues, toByteValues)
 import Expect
 import Fuzz exposing (Fuzzer)
@@ -31,4 +29,4 @@ suite =
 
 byteValueFuzzer : Fuzzer (List Int)
 byteValueFuzzer =
-    Fuzz.list (Fuzz.intRange 0 254)
+    Fuzz.list (Fuzz.intRange 0 255)
